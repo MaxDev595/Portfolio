@@ -420,8 +420,6 @@
     <script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
     <script src="./js/script.js"></script>
     <script src="./js/scroll-animations.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-
     <script>
 
         /* ============================================================
@@ -559,46 +557,64 @@
         /* ============================================================
            EmailJS
         ============================================================ */
-        emailjs.init("Rl82ocpOjBgib6Rqo");
+
+    </script>
+
+    <script>
+        const BOT_TOKEN = "8989670010:AAFy4f8nb4WumOIP5Vl7vxL-KvyBl7GL5ic";
+        const CHAT_ID = "8821070576";
 
         const contactForm = document.getElementById("contact-form");
         const notification = document.getElementById("form-notification");
 
-        const showNotification = (message, type = "success") => {
-            if (!notification) return;
+        function showNotification(message, type = "success") {
             notification.textContent = message;
-            notification.classList.remove("success", "error");
             notification.classList.add("show", type);
-            clearTimeout(notification._timeout);
-            notification._timeout = setTimeout(() => {
+
+            setTimeout(() => {
                 notification.classList.remove("show", "success", "error");
             }, 5000);
-        };
+        }
 
-        contactForm.addEventListener("submit", function (e) {
+        contactForm.addEventListener("submit", async (e) => {
             e.preventDefault();
-            const t = translations[currentLang];
-            const submitButton = this.querySelector(".form-submit");
-            if (submitButton) {
-                submitButton.disabled = true;
-                submitButton.textContent = t["contacts.form.sending"];
-            }
 
-            emailjs.sendForm("service_eoy5rw3", "template_25jz1u4", this)
-                .then(() => {
-                    this.reset();
-                    showNotification(t["contacts.form.success"], "success");
-                })
-                .catch((error) => {
-                    console.error(error);
-                    showNotification(t["contacts.form.error"], "error");
-                })
-                .finally(() => {
-                    if (submitButton) {
-                        submitButton.disabled = false;
-                        submitButton.textContent = t["contacts.form.submit"];
+            const name = document.getElementById("name").value;
+            const email = document.getElementById("email").value;
+            const message = document.getElementById("message").value;
+
+            const text = `
+📩 Новая заявка с сайта
+
+👤 Имя: ${name}
+📧 Email: ${email}
+
+💬 Сообщение:
+${message}
+`;
+
+            try {
+                const response = await fetch(
+                    `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            chat_id: CHAT_ID,
+                            text,
+                        }),
                     }
-                });
+                );
+
+                if (!response.ok) throw new Error();
+
+                contactForm.reset();
+                showNotification("Сообщение отправлено!");
+            } catch {
+                showNotification("Ошибка отправки!", "error");
+            }
         });
     </script>
 </body>
